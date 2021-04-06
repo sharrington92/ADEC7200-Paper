@@ -17,19 +17,19 @@
     filter(Region != "") %>% 
     mutate(
       Region = case_when(
-        Region == "Latin America & Caribbean" ~ "America.Other",
+        Region == "Latin America & Caribbean" ~ "Americas.Other",
         Region == "South Asia" ~ "Asia.Oceania.Africa",
         Region == "Sub-Saharan Africa" ~ "Asia.Oceania.Africa",
         Region == "Europe & Central Asia" ~ "Europe",
         Region == "Middle East & North Africa" ~ "Asia.Oceania.Africa",
         Region == "East Asia & Pacific" ~ "Asia.Oceania.Africa",
         Region == "North America" ~ "US",
-        Region == "North America" & Country.Code == "CAN" ~ "America.Other",
+        Region == "North America" & Country.Code == "CAN" ~ "Americas.Other",
       )
     )
   
   exchange.rate <- read.csv(
-      "Data/Exchange Rate.csv",
+      "Data/Exchange Rate Index.csv",
       skip = 4,
       fileEncoding = "UTF-8-BOM"
     ) %>% 
@@ -39,10 +39,10 @@
     pivot_longer(
       -c(Country.Name, Country.Code), 
       names_to = "Year",
-      values_to = "exchange.rate",
+      values_to = "exchange.rate.index",
       names_prefix = "X"
     ) %>% 
-    filter(!is.na(exchange.rate)) %>% 
+    filter(!is.na(exchange.rate.index)) %>% 
     pivot_longer(
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
@@ -239,12 +239,30 @@
     )
   
   revenues <- readxl::read_xlsx(
-    "Data/Revenues by Region.xlsx"
-  ) 
+      "Data/Revenues by Region.xlsx"
+    ) %>% 
+    mutate(
+      Asia.Oceania.Africa = Asia.Oceania.Africa + Eastern.Hemisphere.Other
+    ) %>% 
+    select(-c(Adjustments, Eastern.Hemisphere.Other)) %>% 
+    pivot_longer(
+      -c(Year),
+      names_to = "Region",
+      values_to = "Revenue"
+    ) 
 }
 
 #Merge economic variables into one dataset
 {
+  largest.gdp.byRegion <- gdp %>%
+    left_join(
+      x = ., y = info.country, by = "Country.Code"
+    ) %>% 
+    group_by(Region) %>% 
+    filter(Year == 2019, !is.na(Region)) %>% 
+    slice_max(order_by = Value, n =1) %>% 
+    select(Region, Country.Code, Country.Name)
+  
   indicators <- bind_rows(
     consumption, exchange.rate, gdp, indust.production, 
     inflation, interest.real, natgas.rent.gdp.p,
@@ -253,32 +271,53 @@
     pivot_wider(
       names_from = Indicator, values_from = Value
     ) %>% 
+    filter(Country.Name != "World") %>% 
     left_join(
       x = ., y = info.country, by = "Country.Code"
     ) %>% 
+    filter(!is.na(Region)) %>% 
     group_by(Region, Year) %>% 
     mutate(
-      gdp.largest = ifelse(gdp == max(gdp, na.rm = TRUE), 1, 0)
+      gdp.largest = ifelse(
+        Country.Code %in% largest.gdp.byRegion$Country.Code,
+        1, 0
+      )
     ) %>% 
     summarize(
       consumption = sum(consumption, na.rm = TRUE),
       gdp = sum(gdp, na.rm = TRUE),
       indust.production = sum(indust.production, na.rm = TRUE),
-      inflation.rate = sum(inflation.rate*gdp, na.rm = TRUE)/sum(gdp, na.rm = TRUE),
-      interest.nom = sum((interest.real + inflation.rate)*gdp, na.rm = TRUE)/sum(gdp, na.rm = TRUE),
+      inflation.rate = sum(inflation.rate * gdp, na.rm = TRUE) /
+        sum(gdp * inflation.rate^0, na.rm = TRUE),
+      interest.nom = sum((interest.real + inflation.rate) * gdp, na.rm = TRUE) /
+        sum(gdp * (interest.real^0) * (inflation.rate^0), na.rm = TRUE),
       gas.price = sum(gas.percent * gdp, na.rm = TRUE),
       oil.price = sum(oil.percent * gdp, na.rm = TRUE),
-      unemployment.rate = sum(unemployment.rate * population, na.rm = TRUE) / sum(population, na.rm = TRUE),
+      unemployment.rate = sum(unemployment.rate * population, na.rm = TRUE) / 
+        sum(population * unemployment.rate^0, na.rm = TRUE),
       population = sum(population, na.rm = TRUE),
-      exchange.rate = sum(exchange.rate * gdp.largest, na.rm = TRUE)
-    )
+      exchange.rate.index = sum(exchange.rate.index * gdp.largest, na.rm = TRUE)
+    ) %>% 
+    mutate(Year = as.integer(Year))
   
-  
+  data <- left_join(
+    x = revenues,
+    y = indicators,
+    by = c("Year", "Region")
+  ) %>% 
+    filter(Year > 2000, Year != 2020)
   
 }
 
 
-
+#Save prepped data as csv
+{
+  write.csv(
+    data,
+    "Data/Combined and Prepared Data.csv",
+    row.names = FALSE
+  )
+}
 
 
 
