@@ -49,21 +49,43 @@
       values_to = "Value"
     )
   
+  #### Inflation rate contains deflation and won't work with log model. CPI used instead.
   inflation <- read.csv(
     "Data/Inflation.csv",
     skip = 4,
     fileEncoding = "UTF-8-BOM"
-    ) %>% 
+    ) %>%
+    select(
+      -c(X, Indicator.Name, Indicator.Code)
+    ) %>%
+    pivot_longer(
+      -c(Country.Name, Country.Code),
+      names_to = "Year",
+      values_to = "inflation.rate",
+      names_prefix = "X"
+    ) %>%
+    filter(!is.na(inflation.rate)) %>%
+    pivot_longer(
+      -c(Country.Name, Country.Code, Year),
+      names_to = "Indicator",
+      values_to = "Value"
+    )
+  
+  cpi <- read.csv(
+    "Data/CPI.csv",
+    skip = 4,
+    fileEncoding = "UTF-8-BOM"
+  ) %>% 
     select(
       -c(X, Indicator.Name, Indicator.Code)
     ) %>% 
     pivot_longer(
       -c(Country.Name, Country.Code), 
       names_to = "Year",
-      values_to = "inflation.rate",
+      values_to = "cpi",
       names_prefix = "X"
     ) %>% 
-    filter(!is.na(inflation.rate)) %>% 
+    filter(!is.na(cpi)) %>% 
     pivot_longer(
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
@@ -265,7 +287,7 @@
   
   indicators <- bind_rows(
     consumption, exchange.rate, gdp, indust.production, 
-    inflation, interest.real, natgas.rent.gdp.p,
+    inflation, cpi, interest.real, natgas.rent.gdp.p,
     oil.rent.gdp.p, population, unemployment.rate
     ) %>% 
     pivot_wider(
@@ -287,8 +309,8 @@
       consumption = sum(consumption, na.rm = TRUE),
       gdp = sum(gdp, na.rm = TRUE),
       indust.production = sum(indust.production, na.rm = TRUE),
-      inflation.rate = sum(inflation.rate * gdp, na.rm = TRUE) /
-        sum(gdp * inflation.rate^0, na.rm = TRUE),
+      cpi = sum(cpi * gdp, na.rm = TRUE) /
+        sum(gdp * cpi^0, na.rm = TRUE),
       interest.nom = sum((interest.real + inflation.rate) * gdp, na.rm = TRUE) /
         sum(gdp * (interest.real^0) * (inflation.rate^0), na.rm = TRUE),
       gas.price = sum(gas.percent * gdp, na.rm = TRUE),
@@ -301,8 +323,8 @@
     mutate(Year = as.integer(Year))
   
   data <- left_join(
-    x = revenues,
-    y = indicators,
+    x = indicators,
+    y = revenues,
     by = c("Year", "Region")
   ) %>% 
     filter(Year > 2000, Year != 2020)
