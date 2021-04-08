@@ -52,7 +52,10 @@
 {
   
   indicators %>% 
-    filter(Region == "US", Year > 2002, Year < 2019) %>% 
+    filter(
+      Region == "Americas.Other", Year > 2002, Year < 2019,
+      !is.na(Revenue), Revenue != 0
+    ) %>% 
     lm(
       dlog(Revenue) ~ dlog(consumption) + dlog(gdp) + dlog(indust.production) + dlog(cpi) +
         diff(interest.nom) + #dlog(gas.price) + 
@@ -60,6 +63,20 @@
       , data = ., na.action = na.omit
     ) %>% 
     summary(.)
+  
+  model.regional.list <- lapply(unique(indicators$Region), function(r){
+    indicators %>% 
+      filter(
+        Region == r, Year > 2002, Year < 2019,
+        !is.na(Revenue), Revenue != 0
+      ) %>% 
+      lm(
+        dlog(Revenue) ~ dlog(consumption) + dlog(gdp) + dlog(indust.production) + dlog(cpi) +
+          diff(interest.nom) + #dlog(gas.price) + 
+          dlog(oil.price) + diff(unemployment.rate) + dlog(exchange.rate.index)
+        , data = ., na.action = na.omit
+      )
+  })
   
   #Split data by region, evaluate linear model
   model.regional <- indicators %>% 
