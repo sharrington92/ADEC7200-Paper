@@ -4,8 +4,10 @@ subtitle: "A Macroeconomic Analysis"
 author: "Shaun Harrington"
 date: "4/7/2021"
 output: 
-  word_document:
+  word_document: 
     reference_docx: word-styles-reference-01.docx
+    fig_width: 8
+    fig_height: 6
 ---
 
 ```{r setup, include=FALSE}
@@ -53,29 +55,71 @@ rev <- indicators %>% select(Year, Region, Revenue) %>%
 
   As numerous macroeconomic indicators are highly correlated with revenues, such as the price of a barrel of oil, the net financial impact is exposed to these uncontrollable variables. By understanding the impacts, measures can be taken to mitigate the impact of changes to the macroeconomy.
   
-  Royal Dutch Shell (RDS) segments revenue streams by region. Those being the United States, Europe, Other Americas, and Asia/Oceania/Africa. In 2019, the distribution of revenues were: `r rev %>% filter(Year == 2019, Region == "US") %>% pull() %>% label_percent()(.)` in the US, `r rev %>% filter(Year == 2019, Region == "Europe") %>% pull() %>% label_percent()(.)` in Europe, `r rev %>% filter(Year == 2019, Region == "Americas.Other") %>% pull() %>% label_percent()(.)` in Other Americas, and `r rev %>% filter(Year == 2019, Region == "Asia.Oceania.Africa") %>% pull() %>% label_percent()(.)` in Asia/Oceania/Africa. See below for a table of revenues by region:
+  Royal Dutch Shell (RDS) segments revenue streams by region. Those being the United States, Europe, Other Americas, and Asia/Oceania/Africa. In 2019, the distribution of revenues were: `r rev %>% filter(Year == 2019, Region == "US") %>% pull() %>% label_percent()(.)` in the US, `r rev %>% filter(Year == 2019, Region == "Europe") %>% pull() %>% label_percent()(.)` in Europe, `r rev %>% filter(Year == 2019, Region == "Americas.Other") %>% pull() %>% label_percent()(.)` in Other Americas, and `r rev %>% filter(Year == 2019, Region == "Asia.Oceania.Africa") %>% pull() %>% label_percent()(.)` in Asia/Oceania/Africa. See below for a chart of revenues by region:
   
-<br>
-
-```{r Revenue Table, echo=FALSE, message=FALSE, warning=FALSE}
-
+  
+ <br>
+ 
+ 
+```{r Regional Rev Chart, echo=FALSE, fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
 
 rev %>% 
-  select(Year, Region, Revenue) %>% 
-  filter(Year > 2009) %>% 
-  mutate(Revenue = label_dollar()(Revenue)) %>% 
-  pivot_wider(names_from = Region, values_from = Revenue) %>% 
-  pander()
+  filter(Year > 2007, Year < 2020) %>% 
+  ggplot(aes(x = Year, y = Revenue, color = Region)) +
+  geom_line(size = 1) +
+  ggtitle("Regional Revenues", "Royal Dutch Shell") +
+  ylab("(In Millions of Dollars)") +
+  xlab("") +
+  scale_x_continuous(n.breaks = 10, limits = c(2008, 2019)) +
+  scale_y_continuous(labels = label_dollar()) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom"
+  ) 
 
 
 ```
  
  <br>
+ 
+ As evidenced in the chart above, revenue streams are subject to large deviations, moreso in some regions than others. Royal Dutch Shell is also experiencing a changing market with revenues during this period decreasing in non-US Americas and Europe yet increasing revenues in the US and Asia/Oceania/Africa. The chart below displays how the regional percent of total revenues has changed during this period.
+ 
+ <br>
+ 
+```{r Regional Percent Rev Chart, echo=FALSE, fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+
+rev %>% 
+  filter(Year > 2007, Year < 2020) %>% 
+  ggplot(aes(x = Year, y = Percent.Annual, color = Region)) +
+  geom_line(size = 1) +
+  ggtitle("Regional Percent of Total Revenues", "Royal Dutch Shell") +
+  ylab("") +
+  xlab("") +
+  scale_x_continuous(n.breaks = 10, limits = c(2008, 2019)) +
+  scale_y_continuous(labels = label_percent(accuracy = 1)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom"
+  ) 
+
+
+```
+ 
+
+ 
+ 
+
+
 
 #### Objectives
 
-  This report will cover the major macroeconomic indicators and how they impact Royal Dutch Shell. An analysis of specific measures to mitigate this risk will be compared with the goal of maximizing revenues. By evaluating the sensitivity, or elasticity, of these indicators, Royal Dutch shell will be able to quantify the risks of a changing macroeconomy. Using these elasticities, a strategy to mitigate these risks will be developed.
+  This report will cover the major macroeconomic indicators and how they impact Royal Dutch Shell. An analysis of specific measures to mitigate this risk will be compared with the goal of maximizing revenues. By evaluating the sensitivity, or elasticity, of these indicators, Royal Dutch shell will be able to quantify the risks of a changing macroeconomy. With these elasticities, a strategy to mitigate these risks will be developed.
 
+  The macroeconomics indicators that will be considered are changes in real GDP, consumption, industrial production, nominal interest rate, inflation, unemployment rate, exchange rate, and natural gas and oil prices. All data is retrieved from the World Bank. The national values for GDP, consumption, and industrial production within a region are summed by year to calculate the total regional values. The nominal interest rates and inflation rates are averaged for each nation using the nation's GDP as a weight. Likewise, the unemployment rate for each nation in a region is averaged using each nation's population as a weight. The exchange rate used is an index provided by the World Bank. The exchange rate for each region is set to the exchange rate for the largest national economy, as measured in GDP, in 2019.
 
 
 ## Literature Review
@@ -96,6 +140,283 @@ rev %>%
 #### Scope 
 
 By means of a log-log model with regional revenues as the dependent variable and macroeconomics indicators as the independent variables, the elasticities of each of these indicators can be evaluated. However, given that available revenue data only trace back to 2004, this approach is severely limited in the vigor necessary for some of the claims that must be met. As such, a laxed approach must be considered as long as the empirical results do not counter economic theory.
+
+```{r Scale Indicators, message=FALSE, warning=FALSE, include=FALSE}
+
+indicators.scaled <- indicators %>% 
+  group_by(Region) %>% 
+  mutate(
+    across(
+      .cols = c(
+        'consumption', 'gdp', 'indust.production', 'cpi', 'interest.nom', 'gas.price', 'oil.price', 'unemployment.rate', 'population', 'exchange.rate.index', 'Revenue'
+      ), scale
+    )
+  )
+
+
+```
+
+
+#### GDP
+
+```{r GDP Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = gdp)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Real GDP by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+#### Consumption
+
+```{r Consumption Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = consumption)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Real Consumption by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+#### Industrial Production
+
+```{r Industrial Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+indicators.scaled %>% 
+  filter(Year < 2019) %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = indust.production)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Real Industrial Production by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2018, 2), limits = c(2008, 2018)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+
+#### Inflation
+
+```{r Inflation Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = cpi)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Consumer Price Index by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+#### Nominal Interest Rate
+
+```{r Interest Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = interest.nom)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Nominal Interest Rate by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+
+
+#### Unemployment Rate
+
+```{r Unemployment Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = unemployment.rate)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Unemployment Rate by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+#### Exchange Rate Index
+
+```{r Exchange Rate Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+indicators.scaled %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = exchange.rate.index)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Exchange Rate Index by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+
+```
+
+
+
+
+#### Oil Rents
+
+```{r Oil Price Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+indicators.scaled %>% 
+  filter(Year < 2019) %>% 
+  group_by(Region) %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = oil.price)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Total Oil Rents by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank()
+  )
+
+
+
+```
+
+
+
+#### Natural Gas Rents
+
+```{r Oil Price Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+indicators.scaled %>% 
+  filter(Year < 2019) %>% 
+  group_by(Region) %>% 
+  ggplot(aes(x = Year, color = Region)) +
+  geom_line(aes(y = gas.price)) +
+  geom_line(aes(y = Revenue), color = "gray70") +
+  facet_wrap(. ~ Region, scales = "free_y") +
+  ggtitle("Total Natural Gas Rents by Region", "With Regional Revenues in Gray") +
+  ylab("Scaled & Centered") +
+  xlab("") +
+  scale_x_continuous(breaks = seq(2008, 2019, 2), limits = c(2008, 2019)) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    legend.position = "bottom",
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank()
+  )
+
+
+
+```
+
+
+
+
 
 The evaluated elasticities enable the ability to determine which macroeconomic variables impact revenues the greatest. Knowing these sensitivies will indicate where to allocate resources to hedge this risk.
 
@@ -133,7 +454,8 @@ The following tables are the output of this model for each region. The "dlog()" 
 ```{r Asia Model Output, echo=FALSE, message=FALSE, warning=FALSE}
 
 model.regional.list[["Asia.Oceania.Africa"]] %>% 
-  summary() %>% tidy() %>% 
+  #summary() %>% 
+  broom::tidy() %>% 
   kable(
     caption = "Asia/Oceania/Africa Log-Log Model.",
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
@@ -149,7 +471,8 @@ model.regional.list[["Asia.Oceania.Africa"]] %>%
 ```{r Europe Model Output, echo=FALSE, message=FALSE, warning=FALSE}
 
 model.regional.list[["Europe"]] %>% 
-  summary() %>% tidy() %>% 
+  #summary() %>% 
+  tidy() %>% 
   kable(
     caption = "Europe Log-Log Model.",
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
@@ -165,7 +488,8 @@ model.regional.list[["Europe"]] %>%
 ```{r US Model Output, echo=FALSE, message=FALSE, warning=FALSE}
 
 model.regional.list[["US"]] %>% 
-  summary() %>% tidy() %>% 
+  #summary() %>% 
+  tidy() %>% 
   kable(
     caption = "US Log-Log Model.",
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
@@ -181,7 +505,8 @@ model.regional.list[["US"]] %>%
 ```{r Americas.Other Model Output, echo=FALSE, message=FALSE, warning=FALSE}
 
 model.regional.list[["Europe"]] %>% 
-  summary() %>% tidy() %>% 
+  #summary() %>% 
+  tidy() %>% 
   kable(
     caption = "Other Americas Log-Log Model.",
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),

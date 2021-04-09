@@ -69,7 +69,8 @@
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
       values_to = "Value"
-    )
+    ) %>% 
+    mutate(Value = Value / 100)
   
   cpi <- read.csv(
     "Data/CPI.csv",
@@ -111,7 +112,8 @@
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
       values_to = "Value"
-    )
+    ) %>% 
+    mutate(Value = Value / 100)
   
   oil.rent.gdp.p <- read.csv(
     "Data/Oil Rents as Percent of GDP.csv",
@@ -132,7 +134,8 @@
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
       values_to = "Value"
-    )
+    ) %>% 
+    mutate(Value = Value / 100)
   
   population <- read.csv(
     "Data/Population.csv",
@@ -237,7 +240,8 @@
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
       values_to = "Value"
-    )
+    ) %>% 
+    mutate(Value = Value / 100)
   
   unemployment.rate <- read.csv(
     "Data/Unemployment Rate.csv",
@@ -258,7 +262,8 @@
       -c(Country.Name, Country.Code, Year),
       names_to = "Indicator",
       values_to = "Value"
-    )
+    ) %>% 
+    mutate(Value = Value / 100)
   
   revenues <- readxl::read_xlsx(
       "Data/Revenues by Region.xlsx"
