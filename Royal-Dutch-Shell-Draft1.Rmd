@@ -11,7 +11,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
 
 #Libraries
 library(tidyverse)
@@ -61,7 +65,7 @@ rev <- indicators %>% select(Year, Region, Revenue) %>%
  <br>
  
  
-```{r Regional Rev Chart, echo=FALSE, fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r Regional Rev Chart, fig.height=4}
 
 rev %>% 
   filter(Year > 2007, Year < 2020) %>% 
@@ -88,7 +92,7 @@ rev %>%
  
  <br>
  
-```{r Regional Percent Rev Chart, echo=FALSE, fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r Regional Percent Rev Chart, fig.height=4}
 
 rev %>% 
   filter(Year > 2007, Year < 2020) %>% 
@@ -139,9 +143,11 @@ rev %>%
 
 #### Scope 
 
-By means of a log-log model with regional revenues as the dependent variable and macroeconomics indicators as the independent variables, the elasticities of each of these indicators can be evaluated. However, given that available revenue data only trace back to 2004, this approach is severely limited in the vigor necessary for some of the claims that must be met. As such, a laxed approach must be considered as long as the empirical results do not counter economic theory.
+By means of a log-log model with regional revenues as the dependent variable and macroeconomics indicators as the independent variables, the elasticities of each of these indicators can be evaluated. However, given that available revenue data only trace back to 2004, this approach is severely limited in the vigor necessary for some of the claims that must be met. Therefore, a laxed approach must be considered such that the empirical results do not counter economic theory.
 
-```{r Scale Indicators, message=FALSE, warning=FALSE, include=FALSE}
+We begin by visually inspecting the included macroeconomic variables with RDS revenues by region. As the exact amounts of these variables are not as important as the correlation to revenues, each of the variables for each region will be scaled and centered to give a mean of zero and standard deviation of one. By doing so, each variable may be visually analyzed in comparison to the scaled and centered revenues.
+
+```{r Scale Indicators}
 
 indicators.scaled <- indicators %>% 
   group_by(Region) %>% 
@@ -159,7 +165,7 @@ indicators.scaled <- indicators %>%
 
 #### GDP
 
-```{r GDP Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r GDP Plot}
 
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
@@ -186,7 +192,7 @@ indicators.scaled %>%
 
 #### Consumption
 
-```{r Consumption Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Consumption Plot}
 
 
 indicators.scaled %>% 
@@ -214,7 +220,7 @@ indicators.scaled %>%
 
 #### Industrial Production
 
-```{r Industrial Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Industrial Plot}
 
 
 indicators.scaled %>% 
@@ -244,7 +250,7 @@ indicators.scaled %>%
 
 #### Inflation
 
-```{r Inflation Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Inflation Plot}
 
 
 indicators.scaled %>% 
@@ -272,7 +278,7 @@ indicators.scaled %>%
 
 #### Nominal Interest Rate
 
-```{r Interest Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Interest Plot}
 
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
@@ -301,7 +307,7 @@ indicators.scaled %>%
 
 #### Unemployment Rate
 
-```{r Unemployment Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Unemployment Plot}
 
 
 indicators.scaled %>% 
@@ -329,7 +335,7 @@ indicators.scaled %>%
 
 #### Exchange Rate Index
 
-```{r Exchange Rate Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Exchange Rate Plot}
 
 
 indicators.scaled %>% 
@@ -358,7 +364,7 @@ indicators.scaled %>%
 
 #### Oil Rents
 
-```{r Oil Price Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Oil Price Plot}
 
 indicators.scaled %>% 
   filter(Year < 2019) %>% 
@@ -388,7 +394,7 @@ indicators.scaled %>%
 
 #### Natural Gas Rents
 
-```{r Oil Price Plot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Gas Price Plot}
 
 indicators.scaled %>% 
   filter(Year < 2019) %>% 
@@ -422,7 +428,7 @@ The evaluated elasticities enable the ability to determine which macroeconomic v
 
 #### Log-Log model evaluation
 
-```{r Model Evaluation, message=FALSE, warning=FALSE, include=FALSE}
+```{r Model Evaluation}
 
 regions <- unique(indicators$Region)
 
@@ -451,7 +457,7 @@ The following tables are the output of this model for each region. The "dlog()" 
  
 #### Asia/Oceania/Africa:
 
-```{r Asia Model Output, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Asia Model Output}
 
 model.regional.list[["Asia.Oceania.Africa"]] %>% 
   #summary() %>% 
@@ -468,7 +474,7 @@ model.regional.list[["Asia.Oceania.Africa"]] %>%
 
 #### Europe:
 
-```{r Europe Model Output, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Europe Model Output}
 
 model.regional.list[["Europe"]] %>% 
   #summary() %>% 
@@ -485,7 +491,7 @@ model.regional.list[["Europe"]] %>%
 
 #### United States:
 
-```{r US Model Output, echo=FALSE, message=FALSE, warning=FALSE}
+```{r US Model Output}
 
 model.regional.list[["US"]] %>% 
   #summary() %>% 
@@ -502,7 +508,7 @@ model.regional.list[["US"]] %>%
 
 #### Other Americas:
 
-```{r Americas.Other Model Output, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Americas.Other Model Output}
 
 model.regional.list[["Europe"]] %>% 
   #summary() %>% 
