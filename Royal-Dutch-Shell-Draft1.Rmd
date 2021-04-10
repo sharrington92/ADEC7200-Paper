@@ -173,8 +173,7 @@ indicators.scaled <- indicators %>%
 
   The charts below show little correlation between GDP and revenues, outside of non-US Americas. Because GDP is an all-encompassing value, the impact of more specific variables could be masking the visual impact that GDP has on revenues. 
 
-=======
->>>>>>> 335e5a625565560d1444b307d34a607dde78f706
+
 ```{r GDP Plot}
 
 indicators.scaled %>% 
