@@ -11,42 +11,7 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo = TRUE,
-  message = FALSE,
-  warning = FALSE
-)
 
-#Libraries
-library(tidyverse)
-library(broom)
-library(car)
-library(scales)
-library(knitr)
-library(pander)
-  
-options(scipen = 9999)
-
-
-#User-defined functions
-{
-  dlog <- function(x){
-    diff(log(x)) %>% return()
-  }
-}
-
-#Pull data
-indicators <- read.csv("Data/Combined and Prepared Data.csv")
-
-#Revenues
-rev <- indicators %>% select(Year, Region, Revenue) %>% 
-  group_by(Year) %>% 
-  mutate(
-    Percent.Annual = Revenue / sum(Revenue)
-  ) %>% ungroup()
-
-```
 
 
 
@@ -60,14 +25,14 @@ rev <- indicators %>% select(Year, Region, Revenue) %>%
 
   As numerous macroeconomic indicators are highly correlated with revenues, such as the price of a barrel of oil, the net financial impact is exposed to these uncontrollable variables. By understanding the impacts, measures can be taken to mitigate the impact of changes to the macroeconomy.
   
-  Royal Dutch Shell (RDS) segments revenue streams by region. Those being the United States, Europe, Other Americas, and Asia/Oceania/Africa. In 2019, the distribution of revenues were: `r rev %>% filter(Year == 2019, Region == "US") %>% pull() %>% label_percent()(.)` in the US, `r rev %>% filter(Year == 2019, Region == "Europe") %>% pull() %>% label_percent()(.)` in Europe, `r rev %>% filter(Year == 2019, Region == "Americas.Other") %>% pull() %>% label_percent()(.)` in Other Americas, and `r rev %>% filter(Year == 2019, Region == "Asia.Oceania.Africa") %>% pull() %>% label_percent()(.)` in Asia/Oceania/Africa. See below for a chart of revenues by region:
+  Royal Dutch Shell (RDS) segments revenue streams by region. Those being the United States, Europe, Other Americas, and Asia/Oceania/Africa. In 2019, the distribution of revenues were: 24% in the US, 29% in Europe, 7% in Other Americas, and 41% in Asia/Oceania/Africa. See below for a chart of revenues by region:
   
   
  <br>
  
  
-```{r Regional Rev Chart, fig.height=4}
 
+```r
 rev %>% 
   filter(Year > 2007, Year < 2020) %>% 
   ggplot(aes(x = Year, y = Revenue, color = Region)) +
@@ -83,9 +48,9 @@ rev %>%
     plot.subtitle = element_text(hjust = .5),
     legend.position = "bottom"
   ) 
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Regional Rev Chart-1.png)<!-- -->
  
  <br>
  
@@ -93,8 +58,8 @@ rev %>%
  
  <br>
  
-```{r Regional Percent Rev Chart, fig.height=4}
 
+```r
 rev %>% 
   filter(Year > 2007, Year < 2020) %>% 
   ggplot(aes(x = Year, y = Percent.Annual, color = Region)) +
@@ -110,9 +75,9 @@ rev %>%
     plot.subtitle = element_text(hjust = .5),
     legend.position = "bottom"
   ) 
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Regional Percent Rev Chart-1.png)<!-- -->
  
 
  
@@ -148,8 +113,8 @@ rev %>%
 
   We begin by visually inspecting the included macroeconomic variables with RDS revenues by region. As the exact amounts of these variables are not as important as the correlation to revenues, each of the variables for each region will be scaled and centered to give a mean of zero and standard deviation of one. By doing so, each variable may be visually analyzed in comparison to the scaled and centered revenues.
 
-```{r Scale Indicators}
 
+```r
 indicators.scaled <- indicators %>% 
   group_by(Region) %>% 
   mutate(
@@ -159,8 +124,6 @@ indicators.scaled <- indicators %>%
       ), scale
     )
   )
-
-
 ```
 
 
@@ -170,8 +133,8 @@ indicators.scaled <- indicators %>%
 
   The charts below show little correlation between GDP and revenues, outside of non-US Americas. Because GDP is an all-encompassing value, the impact of more specific variables could be masking the visual impact that GDP has on revenues. 
 
-```{r GDP Plot}
 
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = gdp)) +
@@ -189,9 +152,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/GDP Plot-1.png)<!-- -->
 
 
 
@@ -199,9 +162,8 @@ indicators.scaled %>%
 
   Real Consumption is a large component of real GDP. This would reflect the actions of consumers within an economy. Higher consumption levels could lead to increased retail sales due to a populace commuting more or traveling. However, a visual analysis does not indicate much correlation, as shown below.
 
-```{r Consumption Plot}
 
-
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = consumption)) +
@@ -219,9 +181,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Consumption Plot-1.png)<!-- -->
 
 
 
@@ -229,9 +191,8 @@ indicators.scaled %>%
 
   Industrial Production is the measure of output from manufacturing, mining, and utilities. Most of which are higher energy-consuming processes. There appears to be significant correlation to revenues in non-US Americas but little outside of this region. This could indicate differences in energy use. Economies that are more reliant on fossil fuels will have revenues more correlated to industrial production. 
 
-```{r Industrial Plot}
 
-
+```r
 indicators.scaled %>% 
   filter(Year < 2019) %>% 
   ggplot(aes(x = Year, color = Region)) +
@@ -250,9 +211,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Industrial Plot-1.png)<!-- -->
 
 
 
@@ -261,9 +222,8 @@ indicators.scaled %>%
 
   The inflation rate, as measured by the rate of growth in the Consumer Price Index, is another instrumental macroeconomic variable. Yet it appears to correlate with revenues very little. This could be due to mostly stable inflation rates, especially when aggregated in regions, with higher inflation areas in rare pockets across the globe.
 
-```{r Inflation Plot}
 
-
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = cpi)) +
@@ -281,9 +241,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Inflation Plot-1.png)<!-- -->
 
 
 
@@ -293,8 +253,8 @@ indicators.scaled %>%
 
   The graph below does seem to indicate some correlation but as past interest rates could be impacting current revenues, a linear model will be a more appropriate measure of this correlation.
 
-```{r Interest Plot}
 
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = interest.nom)) +
@@ -312,9 +272,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Interest Plot-1.png)<!-- -->
 
 
 
@@ -326,9 +286,8 @@ indicators.scaled %>%
 
   Asia/Oceania/Africa and non-US Americas seem to follow this theory, but Europe and the US do not show much of a correlation. Again, this could be that higher-income nations are less reliant on fossil fuels which would limit the correlation between revenues and unemployment. 
 
-```{r Unemployment Plot}
 
-
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = unemployment.rate)) +
@@ -346,9 +305,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Unemployment Plot-1.png)<!-- -->
 
 
 
@@ -358,9 +317,8 @@ indicators.scaled %>%
 
   There does appear to be some correlation to regional revenues. The US appears to be negatively correlated with the exchange rate while non-US Americas appears to be positively correlated. 
 
-```{r Exchange Rate Plot}
 
-
+```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
   geom_line(aes(y = exchange.rate.index)) +
@@ -378,9 +336,9 @@ indicators.scaled %>%
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank()
   )
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Exchange Rate Plot-1.png)<!-- -->
 
 
 
@@ -389,8 +347,8 @@ indicators.scaled %>%
 
   The World Bank defines oil rents as "...the difference between the value of crude oil production at world prices and total costs of production." The data gathered was as a percent of GDP however, the chart below converts the units to dollars by multiplying each economies GDP in dollars by this percentage. This is extremely correlated to revenues, as expected. As the difference between value of production and cost of production increases, we should expect to see higher revenues. Including this variable within the linear modeling will act as a control of the volatile price of oil.
 
-```{r Oil Price Plot}
 
+```r
 indicators.scaled %>% 
   filter(Year < 2019) %>% 
   group_by(Region) %>% 
@@ -410,10 +368,9 @@ indicators.scaled %>%
     axis.ticks.y = element_blank(),
     axis.text.y = element_blank()
   )
-
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Oil Price Plot-1.png)<!-- -->
 
 
 
@@ -421,8 +378,8 @@ indicators.scaled %>%
 
   Natural gas rents were similarly derived as oil rents. As natural gas extration and production is also a major operation at RDS, although not as major as oil, we would also expect there to be correlation with revenues. 
 
-```{r Gas Price Plot}
 
+```r
 indicators.scaled %>% 
   filter(Year < 2019) %>% 
   group_by(Region) %>% 
@@ -442,10 +399,9 @@ indicators.scaled %>%
     axis.ticks.y = element_blank(),
     axis.text.y = element_blank()
   )
-
-
-
 ```
+
+![](Royal-Dutch-Shell-Draft1_files/figure-docx/Gas Price Plot-1.png)<!-- -->
 
 
 
@@ -454,8 +410,8 @@ indicators.scaled %>%
 
 #### Log-Log model evaluation
 
-```{r Model Evaluation}
 
+```r
 regions <- unique(indicators$Region)
 
 model.regional.list <- lapply(regions, function(r){
@@ -476,7 +432,6 @@ model.regional.list <- lapply(regions, function(r){
   })
 
 names(model.regional.list) <- regions
-
 ```
 
 The following tables are the output of this model for each region. The "dlog()" encapsulating each variable is a function that returns the first difference of the natural log of the variable.
@@ -484,8 +439,8 @@ The following tables are the output of this model for each region. The "dlog()" 
  
 #### Asia/Oceania/Africa:
 
-```{r Asia Model Output, fig.width=8}
 
+```r
 model.regional.list[["Asia.Oceania.Africa"]] %>% 
   #summary() %>% 
   broom::tidy() %>% 
@@ -494,15 +449,30 @@ model.regional.list[["Asia.Oceania.Africa"]] %>%
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
     digits = c(0, 2, 2, 2, 2)
   )
-
 ```
+
+
+
+Table: Asia/Oceania/Africa Log-Log Model.
+
+|Predictor                 | Estimate|    SE| t-Statistic| P-Value|
+|:-------------------------|--------:|-----:|-----------:|-------:|
+|(Intercept)               |    -0.35|  0.17|       -1.99|    0.10|
+|dlog(consumption)         |     6.23|  5.24|        1.19|    0.29|
+|dlog(gdp)                 |     6.14|  5.00|        1.23|    0.27|
+|dlog(indust.production)   |    -3.56|  1.98|       -1.80|    0.13|
+|dlog(cpi)                 |    -0.05|  0.33|       -0.16|    0.88|
+|diff(interest.nom)        |    -2.17|  2.55|       -0.85|    0.44|
+|dlog(oil.price)           |     0.71|  0.13|        5.53|    0.00|
+|diff(unemployment.rate)   |   -52.07| 47.48|       -1.10|    0.32|
+|dlog(exchange.rate.index) |     0.47|  0.82|        0.57|    0.60|
 
 <br> 
 
 #### Europe:
 
-```{r Europe Model Output, fig.width=8}
 
+```r
 model.regional.list[["Europe"]] %>% 
   #summary() %>% 
   tidy() %>% 
@@ -511,15 +481,30 @@ model.regional.list[["Europe"]] %>%
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
     digits = c(0, 2, 2, 2, 2)
   )
-
 ```
+
+
+
+Table: Europe Log-Log Model.
+
+|Predictor                 | Estimate|    SE| t-Statistic| P-Value|
+|:-------------------------|--------:|-----:|-----------:|-------:|
+|(Intercept)               |    -0.18|  0.10|       -1.79|    0.13|
+|dlog(consumption)         |    -4.15|  7.80|       -0.53|    0.62|
+|dlog(gdp)                 |     9.68| 12.92|        0.75|    0.49|
+|dlog(indust.production)   |     1.64|  6.14|        0.27|    0.80|
+|dlog(cpi)                 |     3.62|  2.02|        1.80|    0.13|
+|diff(interest.nom)        |     3.80|  6.23|        0.61|    0.57|
+|dlog(oil.price)           |     0.77|  0.12|        6.49|    0.00|
+|diff(unemployment.rate)   |    23.26| 16.32|        1.43|    0.21|
+|dlog(exchange.rate.index) |     0.95|  1.39|        0.69|    0.52|
 
 <br> 
 
 #### United States:
 
-```{r US Model Output, fig.width=8}
 
+```r
 model.regional.list[["US"]] %>% 
   #summary() %>% 
   tidy() %>% 
@@ -528,15 +513,30 @@ model.regional.list[["US"]] %>%
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
     digits = c(0, 2, 2, 2, 2)
   )
-
 ```
+
+
+
+Table: US Log-Log Model.
+
+|Predictor                 | Estimate|    SE| t-Statistic| P-Value|
+|:-------------------------|--------:|-----:|-----------:|-------:|
+|(Intercept)               |    -0.16|  0.31|       -0.51|    0.63|
+|dlog(consumption)         |     9.92| 17.03|        0.58|    0.59|
+|dlog(gdp)                 |     0.60| 16.36|        0.04|    0.97|
+|dlog(indust.production)   |     0.01|  1.97|        0.00|    1.00|
+|dlog(cpi)                 |    -3.37| 15.50|       -0.22|    0.84|
+|diff(interest.nom)        |   -13.06|  7.75|       -1.69|    0.15|
+|dlog(oil.price)           |     0.03|  0.06|        0.42|    0.69|
+|diff(unemployment.rate)   |    -8.50| 17.06|       -0.50|    0.64|
+|dlog(exchange.rate.index) |    -4.18|  4.80|       -0.87|    0.42|
 
 <br> 
 
 #### Other Americas:
 
-```{r Americas.Other Model Output, fig.width=8}
 
+```r
 model.regional.list[["Europe"]] %>% 
   #summary() %>% 
   tidy() %>% 
@@ -545,8 +545,23 @@ model.regional.list[["Europe"]] %>%
     col.names = c("Predictor", "Estimate", "SE", "t-Statistic", "P-Value"),
     digits = c(0, 2, 2, 2, 2)
   )
-
 ```
+
+
+
+Table: Other Americas Log-Log Model.
+
+|Predictor                 | Estimate|    SE| t-Statistic| P-Value|
+|:-------------------------|--------:|-----:|-----------:|-------:|
+|(Intercept)               |    -0.18|  0.10|       -1.79|    0.13|
+|dlog(consumption)         |    -4.15|  7.80|       -0.53|    0.62|
+|dlog(gdp)                 |     9.68| 12.92|        0.75|    0.49|
+|dlog(indust.production)   |     1.64|  6.14|        0.27|    0.80|
+|dlog(cpi)                 |     3.62|  2.02|        1.80|    0.13|
+|diff(interest.nom)        |     3.80|  6.23|        0.61|    0.57|
+|dlog(oil.price)           |     0.77|  0.12|        6.49|    0.00|
+|diff(unemployment.rate)   |    23.26| 16.32|        1.43|    0.21|
+|dlog(exchange.rate.index) |     0.95|  1.39|        0.69|    0.52|
 
 <br> 
 
