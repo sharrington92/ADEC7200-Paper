@@ -109,9 +109,11 @@ rev %>%
 
 #### Scope 
 
+
   By means of a log-log model with regional revenues as the dependent variable and macroeconomics indicators as the independent variables, the elasticities of each of these indicators can be evaluated. However, given that available revenue data only trace back to 2004, this approach is severely limited in the vigor necessary for some of the claims that must be met. Therefore, a laxed approach must be considered such that the empirical results do not counter economic theory.
 
   We begin by visually inspecting the included macroeconomic variables with RDS revenues by region. As the exact amounts of these variables are not as important as the correlation to revenues, each of the variables for each region will be scaled and centered to give a mean of zero and standard deviation of one. By doing so, each variable may be visually analyzed in comparison to the scaled and centered revenues.
+
 
 
 ```r
@@ -129,9 +131,11 @@ indicators.scaled <- indicators %>%
 
 #### GDP
 
+
   Real Gross Domestic Product is monumental in the discussion of macroeconomic indicators as it is the heartbeat of an economy, measuring the total value of goods and services produced during a period. This is relevant to Royal Dutch Shell as demand for energy will fluctuate with the economy. When an economy is expanding, the energy that it needs to fulfill this expansion will increase. On the contrary, an economy will have a baseline energy requirement that must be met regardless of the growth of an economy.
 
   The charts below show little correlation between GDP and revenues, outside of non-US Americas. Because GDP is an all-encompassing value, the impact of more specific variables could be masking the visual impact that GDP has on revenues. 
+
 
 
 ```r
@@ -163,6 +167,7 @@ indicators.scaled %>%
   Real Consumption is a large component of real GDP. This would reflect the actions of consumers within an economy. Higher consumption levels could lead to increased retail sales due to a populace commuting more or traveling. However, a visual analysis does not indicate much correlation, as shown below.
 
 
+
 ```r
 indicators.scaled %>% 
   ggplot(aes(x = Year, color = Region)) +
@@ -188,6 +193,7 @@ indicators.scaled %>%
 
 
 #### Industrial Production
+
 
   Industrial Production is the measure of output from manufacturing, mining, and utilities. Most of which are higher energy-consuming processes. There appears to be significant correlation to revenues in non-US Americas but little outside of this region. This could indicate differences in energy use. Economies that are more reliant on fossil fuels will have revenues more correlated to industrial production. 
 
@@ -220,7 +226,9 @@ indicators.scaled %>%
 
 #### Inflation
 
+
   The inflation rate, as measured by the rate of growth in the Consumer Price Index, is another instrumental macroeconomic variable. Yet it appears to correlate with revenues very little. This could be due to mostly stable inflation rates, especially when aggregated in regions, with higher inflation areas in rare pockets across the globe.
+
 
 
 ```r
@@ -249,9 +257,11 @@ indicators.scaled %>%
 
 #### Nominal Interest Rate
 
+
   The nominal interest rate is an important variable to consider as it is the opportunity cost of holding money. Higher rates would mean that RDS is more constrained in financing projects such as research and development. This could mean that interest rates today wouldn't necessarily impact only revenues today but future revenues as some capital projects today would be foregone lowering future revenues. 
 
   The graph below does seem to indicate some correlation but as past interest rates could be impacting current revenues, a linear model will be a more appropriate measure of this correlation.
+
 
 
 ```r
@@ -282,9 +292,11 @@ indicators.scaled %>%
 
 #### Unemployment Rate
 
+
   Another central pillar of macroeconomics, the unemployment rate will also indicate the health of an economy. RDS should expect lower revenues in regions with higher unemployment as commutes to work, lowered consumption, among other factors would lower energy demand. 
 
   Asia/Oceania/Africa and non-US Americas seem to follow this theory, but Europe and the US do not show much of a correlation. Again, this could be that higher-income nations are less reliant on fossil fuels which would limit the correlation between revenues and unemployment. 
+
 
 
 ```r
@@ -313,9 +325,11 @@ indicators.scaled %>%
 
 #### Exchange Rate Index
 
+
   The exchange rate index indicates how an economy is operating relative to other economies. High-importing nations will generally reflect a higher exchange rate while high-exporting nations will generally have lower exchange rates. It will be a reflection of how local prices compare to foreign prices. 
 
   There does appear to be some correlation to regional revenues. The US appears to be negatively correlated with the exchange rate while non-US Americas appears to be positively correlated. 
+
 
 
 ```r
@@ -345,7 +359,9 @@ indicators.scaled %>%
 
 #### Oil Rents
 
+
   The World Bank defines oil rents as "...the difference between the value of crude oil production at world prices and total costs of production." The data gathered was as a percent of GDP however, the chart below converts the units to dollars by multiplying each economies GDP in dollars by this percentage. This is extremely correlated to revenues, as expected. As the difference between value of production and cost of production increases, we should expect to see higher revenues. Including this variable within the linear modeling will act as a control of the volatile price of oil.
+
 
 
 ```r
@@ -376,7 +392,9 @@ indicators.scaled %>%
 
 #### Natural Gas Rents
 
+
   Natural gas rents were similarly derived as oil rents. As natural gas extration and production is also a major operation at RDS, although not as major as oil, we would also expect there to be correlation with revenues. 
+
 
 
 ```r
@@ -440,6 +458,7 @@ The following tables are the output of this model for each region. The "dlog()" 
 #### Asia/Oceania/Africa:
 
 
+
 ```r
 model.regional.list[["Asia.Oceania.Africa"]] %>% 
   #summary() %>% 
@@ -470,6 +489,7 @@ Table: Asia/Oceania/Africa Log-Log Model.
 <br> 
 
 #### Europe:
+
 
 
 ```r
@@ -504,6 +524,7 @@ Table: Europe Log-Log Model.
 #### United States:
 
 
+
 ```r
 model.regional.list[["US"]] %>% 
   #summary() %>% 
@@ -534,6 +555,7 @@ Table: US Log-Log Model.
 <br> 
 
 #### Other Americas:
+
 
 
 ```r
