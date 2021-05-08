@@ -7,7 +7,7 @@
   options(scipen = 9999)
 }
 
-#Pull in data
+# Pull in data
 {
   info.country <- read.csv(
     "Data/Country Info.csv",
@@ -265,6 +265,27 @@
     ) %>% 
     mutate(Value = Value / 100)
   
+  energy.use <- read.csv(
+    "Data/Energy Use.csv",
+    skip = 4,
+    fileEncoding = "UTF-8-BOM"
+  ) %>% 
+    select(
+      -c(X, Indicator.Name, Indicator.Code)
+    ) %>% 
+    pivot_longer(
+      -c(Country.Name, Country.Code), 
+      names_to = "Year",
+      values_to = "energy.use",
+      names_prefix = "X"
+    ) %>% 
+    filter(!is.na(energy.use)) %>% 
+    pivot_longer(
+      -c(Country.Name, Country.Code, Year),
+      names_to = "Indicator",
+      values_to = "Value"
+    )
+  
   revenues <- readxl::read_xlsx(
       "Data/Revenues by Region.xlsx"
     ) %>% 
@@ -293,7 +314,7 @@
   indicators <- bind_rows(
     consumption, exchange.rate, gdp, indust.production, 
     inflation, cpi, interest.real, natgas.rent.gdp.p,
-    oil.rent.gdp.p, population, unemployment.rate
+    oil.rent.gdp.p, population, unemployment.rate, energy.use
     ) %>% 
     pivot_wider(
       names_from = Indicator, values_from = Value
@@ -323,13 +344,14 @@
       unemployment.rate = sum(unemployment.rate * population, na.rm = TRUE) / 
         sum(population * unemployment.rate^0, na.rm = TRUE),
       population = sum(population, na.rm = TRUE),
-      exchange.rate.index = sum(exchange.rate.index * gdp.largest, na.rm = TRUE)
+      exchange.rate.index = sum(exchange.rate.index * gdp.largest, na.rm = TRUE),
+      energy.use = sum(energy.use * population, na.rm = TRUE) / sum(population, na.rm = TRUE)
     ) %>% 
     mutate(Year = as.integer(Year))
   
   data <- left_join(
-    x = indicators,
-    y = revenues,
+    x = revenues,
+    y = indicators,
     by = c("Year", "Region")
   ) %>% 
     filter(Year > 2000, Year != 2020)
